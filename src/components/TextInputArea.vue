@@ -29,8 +29,10 @@ function handleStart() {
 }
 
 function handleClear() {
-  inputText.value = ''
-  emit('clear')
+  if (confirm('確定要清除所有內容嗎？此操作無法復原。')) {
+    inputText.value = ''
+    emit('clear')
+  }
 }
 </script>
 

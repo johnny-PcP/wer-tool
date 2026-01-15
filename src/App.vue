@@ -297,11 +297,23 @@ onUnmounted(() => {
 <template>
   <div class="app min-h-screen bg-gray-50 py-8">
     <div class="max-w-4xl mx-auto px-4">
-      <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">文字錯誤標記評分工具</h1>
+      <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">WER Tool</h1>
 
       <!-- 輸入區 -->
-      <div v-if="!isMarking" class="bg-white rounded-lg shadow-md p-6">
-        <TextInputArea :initial-text="inputText" @start-marking="handleStartMarking" @clear="handleClearAll" />
+      <div v-if="!isMarking" class="space-y-4">
+        <!-- 說明區塊 -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+          <p class="font-medium mb-2">Word Error Rate (WER) 標記工具</p>
+          <ul class="list-disc list-inside space-y-1 text-blue-700">
+            <li>快速標記語音辨識或文字轉錄的錯誤，計算 WER</li>
+            <li>大部分操作基於<strong>鍵盤快捷鍵</strong>，提升標記效率</li>
+            <li>資料會自動儲存於<strong>瀏覽器本地</strong>，重新整理不會遺失</li>
+          </ul>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <TextInputArea :initial-text="inputText" @start-marking="handleStartMarking" @clear="handleClearAll" />
+        </div>
       </div>
 
       <!-- 標記區 -->
@@ -420,5 +432,16 @@ onUnmounted(() => {
         <TotalStats :lines="lines" />
       </div>
     </div>
+
+    <!-- 頁尾版權聲明 -->
+    <footer class="mt-8 py-4 border-t border-gray-200 text-center text-xs text-gray-500">
+      <p>&copy; 2025 WER Tool. All rights reserved.</p>
+      <p class="mt-1">
+        問題回報或建議請聯繫：
+        <a href="mailto:johnnypcp0313@gmail.com" class="text-blue-500 hover:underline">
+          johnnypcp0313@gmail.com
+        </a>
+      </p>
+    </footer>
   </div>
 </template>

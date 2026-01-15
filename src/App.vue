@@ -73,6 +73,7 @@ const { editMode } = useKeyboard(() => lines.value, selection, {
   onExpandRight: () => editor.expandRight(),
   onSplit: (side) => editor.splitSegment(side),
   onUndo: () => handleUndo(),
+  onMergeNext: () => editor.mergeWithNext(),
 })
 
 function handleStartMarking(text: string) {
@@ -323,7 +324,8 @@ onUnmounted(() => {
                 >←→</kbd
               >
               調整右邊界 |
-              <kbd class="px-1 bg-gray-200 rounded">S</kbd> 分割
+              <kbd class="px-1 bg-gray-200 rounded">S</kbd> 分割 |
+              <kbd class="px-1 bg-gray-200 rounded">C</kbd> 合併下一個
             </p>
             <p>
               <kbd class="px-1 bg-gray-200 rounded">Enter</kbd> 編輯模式 |

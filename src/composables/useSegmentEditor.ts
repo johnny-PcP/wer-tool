@@ -178,6 +178,34 @@ export function useSegmentEditor(
     selected.segment.isError = !selected.segment.isError
   }
 
+  // C: 將當前區塊與下一個區塊合併
+  function mergeWithNext(): void {
+    const selected = getSelectedSegment()
+    if (!selected) return
+
+    const { line, segmentIndex, segment } = selected
+
+    // 最後一個區塊無法向右合併
+    if (segmentIndex >= line.segments.length - 1) return
+
+    onBeforeAction?.()
+
+    const nextSegment = line.segments[segmentIndex + 1]
+    if (!nextSegment) return
+
+    // 合併文字
+    segment.text += nextSegment.text
+    segment.endIndex = nextSegment.endIndex
+
+    // 狀態繼承：任一為錯誤則合併後為錯誤
+    segment.isError = segment.isError || nextSegment.isError
+    // 兩者都刪除才為刪除
+    segment.isDeleted = segment.isDeleted && nextSegment.isDeleted
+
+    // 移除下一個區塊
+    line.segments.splice(segmentIndex + 1, 1)
+  }
+
   // S 分割區塊：基於 side 決定分割點
   // side = 'left' 時，從左邊分割第一個字元
   // side = 'right' 時，從右邊分割最後一個字元
@@ -248,5 +276,6 @@ export function useSegmentEditor(
     deleteSegment,
     toggleError,
     splitSegment,
+    mergeWithNext,
   }
 }

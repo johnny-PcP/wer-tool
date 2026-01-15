@@ -15,6 +15,7 @@ export function useKeyboard(
     onExpandRight: () => void
     onSplit: (side: 'left' | 'right') => void
     onUndo: () => void
+    onMergeNext: () => void
   },
 ) {
   const isZPressed = ref(false)
@@ -314,6 +315,12 @@ export function useKeyboard(
     if (e.key === 'a' || e.key === 'A') {
       e.preventDefault()
       callbacks.onUndo()
+    }
+
+    // C 合併當前區塊與下一個區塊
+    if (e.key === 'c' || e.key === 'C') {
+      e.preventDefault()
+      callbacks.onMergeNext()
     }
   }
 

@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { Segment } from '@/types'
 
+defineOptions({
+  name: 'TextSegment',
+})
+
 defineProps<{
   segment: Segment
   isSelected: boolean

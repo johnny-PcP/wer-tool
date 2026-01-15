@@ -305,7 +305,7 @@ onUnmounted(() => {
           </div>
           <div>
             <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              WER Tool
+              Johnny's WER Tool
             </h1>
             <p class="text-xs text-slate-500">Word Error Rate Calculator</p>
           </div>
@@ -502,8 +502,8 @@ onUnmounted(() => {
         <p class="text-sm text-slate-500">&copy; 2025 WER Tool. All rights reserved.</p>
         <p class="text-xs text-slate-400 mt-1">
           問題回報或建議請聯繫：
-          <a href="mailto:johnnypcp0313@gmail.com" class="text-blue-500 hover:text-blue-600 hover:underline transition-colors">
-            johnnypcp0313@gmail.com
+          <a href="mailto:johnny_pcp@hotmail.com" class="text-blue-500 hover:text-blue-600 hover:underline transition-colors">
+            johnny_pcp@hotmail.com
           </a>
         </p>
       </div>

@@ -79,18 +79,28 @@ function handleReParseLine() {
       </div>
     </template>
 
-    <!-- 重新判定按鈕（始終顯示） -->
-    <button
-      class="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded hover:bg-blue-200 transition-colors whitespace-nowrap"
-      @click="handleReParseLine"
-      title="重新判定此行"
-    >
-      ↻
-    </button>
+    <!-- 右側固定區域：重置按鈕 + 統計數字 -->
+    <div class="flex items-center gap-2 shrink-0">
+      <!-- 重新判定按鈕 -->
+      <button
+        class="w-7 h-7 flex items-center justify-center bg-slate-100 text-slate-500 text-sm rounded-lg hover:bg-blue-100 hover:text-blue-600 transition-colors"
+        @click="handleReParseLine"
+        title="重新判定此行（重新分詞）"
+      >
+        ↻
+      </button>
 
-    <div class="stats flex gap-2 text-sm font-mono whitespace-nowrap">
-      <span class="text-blue-600">{{ stats.totalCount }}</span>
-      <span v-if="stats.errorCount > 0" class="text-red-500">({{ stats.errorCount }})</span>
+      <!-- 統計數字：固定三位數寬度 -->
+      <div class="stats flex items-center gap-1 text-sm font-mono">
+        <span
+          class="w-8 text-right text-blue-600"
+          title="此行總詞數（不含標點）"
+        >{{ stats.totalCount }}</span>
+        <span
+          class="w-10 text-right text-red-500"
+          title="此行錯誤數"
+        >{{ stats.errorCount > 0 ? `(${stats.errorCount})` : '' }}</span>
+      </div>
     </div>
   </div>
 </template>

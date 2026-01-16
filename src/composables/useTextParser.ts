@@ -86,10 +86,22 @@ export function reParseLine(text: string, existingLineId?: string): TextLine {
   }
 }
 
+// 重新分配所有 ID（保留標記狀態，修復方向鍵導航問題）
+export function reassignIds(lines: TextLine[]): void {
+  resetIdCounters()
+  for (const line of lines) {
+    line.id = generateLineId()
+    for (const segment of line.segments) {
+      segment.id = generateSegmentId()
+    }
+  }
+}
+
 export function useTextParser() {
   return {
     parseText,
     reParseLine,
     resetIdCounters,
+    reassignIds,
   }
 }

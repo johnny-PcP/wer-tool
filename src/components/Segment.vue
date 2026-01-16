@@ -168,112 +168,111 @@ function getSearchHighlightedParts(): TextPart[] {
   margin: 0 1px;
   padding: 2px 4px;
   border-radius: 2px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .segment-correct {
   border-bottom-color: #3b82f6;
+  background-color: transparent;
 }
 
 .segment-error {
   border-bottom-color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.08);
 }
 
 .segment-deleted {
   border-bottom-color: transparent;
   color: #9ca3af;
+  background-color: rgba(156, 163, 175, 0.1);
+  text-decoration: line-through;
+  text-decoration-color: rgba(156, 163, 175, 0.5);
 }
 
 /* === 選中狀態 - 基礎（正確狀態） === */
 .segment-selected {
-  background-color: rgba(251, 191, 36, 0.25);
-  outline: 3px solid #fbbf24;
-  outline-offset: 2px;
+  background-color: rgba(251, 191, 36, 0.3);
   box-shadow:
-    0 0 0 1px rgba(251, 191, 36, 0.3),
-    0 0 12px rgba(251, 191, 36, 0.4),
-    0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: scale(1.02);
+    inset 0 -3px 0 0 #fbbf24,
+    0 0 0 2px rgba(251, 191, 36, 0.4),
+    0 0 8px rgba(251, 191, 36, 0.3);
   z-index: 10;
   animation: selection-pulse 2s ease-in-out infinite;
 }
 
 /* === 選中狀態 - 錯誤狀態 === */
 .segment-selected-error {
-  background-color: rgba(239, 68, 68, 0.2);
-  outline-color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.25);
   box-shadow:
-    0 0 0 1px rgba(239, 68, 68, 0.3),
-    0 0 12px rgba(239, 68, 68, 0.4),
-    0 2px 8px rgba(0, 0, 0, 0.1);
+    inset 0 -3px 0 0 #ef4444,
+    0 0 0 2px rgba(239, 68, 68, 0.4),
+    0 0 8px rgba(239, 68, 68, 0.3);
   animation: selection-pulse-error 2s ease-in-out infinite;
 }
 
 /* === 選中狀態 - 已刪除狀態 === */
 .segment-selected-deleted {
-  background-color: rgba(156, 163, 175, 0.2);
-  outline-color: #9ca3af;
+  background-color: rgba(156, 163, 175, 0.25);
   box-shadow:
-    0 0 0 1px rgba(156, 163, 175, 0.3),
-    0 0 12px rgba(156, 163, 175, 0.4),
-    0 2px 8px rgba(0, 0, 0, 0.1);
+    inset 0 -3px 0 0 #9ca3af,
+    0 0 0 2px rgba(156, 163, 175, 0.4),
+    0 0 8px rgba(156, 163, 175, 0.3);
   animation: selection-pulse-deleted 2s ease-in-out infinite;
 }
 
 /* === 選中脈衝動畫 === */
 @keyframes selection-pulse {
   0%, 100% {
-    outline-color: #fbbf24;
     box-shadow:
-      0 0 0 1px rgba(251, 191, 36, 0.3),
-      0 0 12px rgba(251, 191, 36, 0.4),
-      0 2px 8px rgba(0, 0, 0, 0.1);
+      inset 0 -3px 0 0 #fbbf24,
+      0 0 0 2px rgba(251, 191, 36, 0.4),
+      0 0 8px rgba(251, 191, 36, 0.3);
   }
   50% {
-    outline-color: #f59e0b;
     box-shadow:
-      0 0 0 2px rgba(245, 158, 11, 0.4),
-      0 0 20px rgba(251, 191, 36, 0.5),
-      0 2px 12px rgba(0, 0, 0, 0.15);
+      inset 0 -3px 0 0 #f59e0b,
+      0 0 0 2px rgba(245, 158, 11, 0.5),
+      0 0 12px rgba(251, 191, 36, 0.4);
   }
 }
 
 @keyframes selection-pulse-error {
   0%, 100% {
-    outline-color: #ef4444;
     box-shadow:
-      0 0 0 1px rgba(239, 68, 68, 0.3),
-      0 0 12px rgba(239, 68, 68, 0.4),
-      0 2px 8px rgba(0, 0, 0, 0.1);
+      inset 0 -3px 0 0 #ef4444,
+      0 0 0 2px rgba(239, 68, 68, 0.4),
+      0 0 8px rgba(239, 68, 68, 0.3);
   }
   50% {
-    outline-color: #dc2626;
     box-shadow:
-      0 0 0 2px rgba(220, 38, 38, 0.4),
-      0 0 20px rgba(239, 68, 68, 0.5),
-      0 2px 12px rgba(0, 0, 0, 0.15);
+      inset 0 -3px 0 0 #dc2626,
+      0 0 0 2px rgba(220, 38, 38, 0.5),
+      0 0 12px rgba(239, 68, 68, 0.4);
   }
 }
 
 @keyframes selection-pulse-deleted {
   0%, 100% {
-    outline-color: #9ca3af;
     box-shadow:
-      0 0 0 1px rgba(156, 163, 175, 0.3),
-      0 0 12px rgba(156, 163, 175, 0.4),
-      0 2px 8px rgba(0, 0, 0, 0.1);
+      inset 0 -3px 0 0 #9ca3af,
+      0 0 0 2px rgba(156, 163, 175, 0.4),
+      0 0 8px rgba(156, 163, 175, 0.3);
   }
   50% {
-    outline-color: #6b7280;
     box-shadow:
-      0 0 0 2px rgba(107, 114, 128, 0.4),
-      0 0 20px rgba(156, 163, 175, 0.5),
-      0 2px 12px rgba(0, 0, 0, 0.15);
+      inset 0 -3px 0 0 #6b7280,
+      0 0 0 2px rgba(107, 114, 128, 0.5),
+      0 0 12px rgba(156, 163, 175, 0.4);
   }
 }
 
 .segment:hover:not(.segment-selected) {
   opacity: 0.85;
-  transform: scale(1.01);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.segment:active:not(.segment-selected) {
+  opacity: 0.7;
 }
 
 /* === 減少動畫偏好設定 === */
@@ -314,32 +313,25 @@ function getSearchHighlightedParts(): TextPart[] {
 .preview-char-movable,
 .preview-char-target {
   display: inline;
-  padding: 1px 2px;
-  margin: 0 1px;
   border-radius: 2px;
-  font-weight: 600;
   animation: pulse-preview 0.8s ease-in-out infinite;
 }
 
 /* 當前區塊可移動字元（橘色） */
 .preview-char-movable {
-  background-color: rgba(251, 146, 60, 0.4);
+  background-color: rgba(251, 146, 60, 0.5);
   color: #c2410c;
-  border: 1px dashed #f97316;
 }
 
 /* 相鄰區塊目標字元（藍色） */
 .preview-char-target {
-  background-color: rgba(147, 197, 253, 0.5);
+  background-color: rgba(147, 197, 253, 0.6);
   color: #1d4ed8;
-  border: 1px dashed #3b82f6;
 }
 
 /* 相鄰區塊預覽狀態 */
 .segment-adjacent-preview {
-  opacity: 0.95;
-  outline: 2px dashed #93c5fd !important;
-  outline-offset: 1px;
+  opacity: 0.9;
 }
 
 @keyframes pulse-preview {

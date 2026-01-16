@@ -94,7 +94,7 @@ function handleKeyDown(e: KeyboardEvent) {
       <!-- 導航按鈕 -->
       <div class="flex items-center gap-0.5 border-l border-slate-200 pl-2">
         <button
-          class="p-1.5 hover:bg-slate-100 rounded transition-colors"
+          class="p-1.5 hover:bg-slate-100 hover:-translate-y-0.5 active:opacity-70 rounded transition-all duration-200"
           title="上一個 (Shift+Enter)"
           @click="emit('prev')"
         >
@@ -103,7 +103,7 @@ function handleKeyDown(e: KeyboardEvent) {
           </svg>
         </button>
         <button
-          class="p-1.5 hover:bg-slate-100 rounded transition-colors"
+          class="p-1.5 hover:bg-slate-100 hover:translate-y-0.5 active:opacity-70 rounded transition-all duration-200"
           title="下一個 (Enter)"
           @click="emit('next')"
         >
@@ -115,8 +115,8 @@ function handleKeyDown(e: KeyboardEvent) {
 
       <!-- 大小寫敏感切換 -->
       <button
-        class="p-1.5 rounded transition-colors text-xs font-mono shrink-0"
-        :class="caseSensitive ? 'bg-blue-100 text-blue-700' : 'hover:bg-slate-100 text-slate-500'"
+        class="p-1.5 rounded transition-all duration-200 text-xs font-mono shrink-0 active:opacity-70"
+        :class="caseSensitive ? 'bg-blue-100 text-blue-700 shadow-sm' : 'hover:bg-slate-100 text-slate-500'"
         title="區分大小寫"
         @click="emit('update:caseSensitive', !caseSensitive)"
       >
@@ -125,11 +125,11 @@ function handleKeyDown(e: KeyboardEvent) {
 
       <!-- 關閉按鈕 -->
       <button
-        class="p-1.5 hover:bg-slate-100 rounded transition-colors shrink-0"
+        class="p-1.5 hover:bg-red-50 hover:text-red-500 rounded transition-all duration-200 shrink-0 active:opacity-70"
         title="關閉 (Esc)"
         @click="emit('close')"
       >
-        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>

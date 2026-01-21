@@ -49,7 +49,7 @@ export function useSegmentEditor(
         segment.text = char + segment.text
         segment.startIndex = prevSegment.endIndex
 
-        // 如果前一個區塊空了，移除它
+        // 如果前一個區塊空了，移除它（文字已清空，不會重疊）
         if (prevSegment.text.length === 0) {
           line.segments.splice(segmentIndex - 1, 1)
         }
@@ -215,6 +215,9 @@ export function useSegmentEditor(
     // 兩者都刪除才為刪除
     segment.isDeleted = segment.isDeleted && nextSegment.isDeleted
 
+    // 先清空被合併區塊的文字，避免移除時短暫顯示重複文字
+    nextSegment.text = ''
+
     // 移除下一個區塊
     line.segments.splice(segmentIndex + 1, 1)
   }
@@ -254,8 +257,7 @@ export function useSegmentEditor(
       // 插入新區塊到前面
       line.segments.splice(segmentIndex, 0, newSegment)
 
-      // 選取新分割出的區塊
-      selection.segmentId = newSegment.id
+      // 選擇區保留在原本的區塊（不變更 selection.segmentId）
     } else {
       // 從右邊分割：取出最後一個字元作為新區塊
       const lastChar = segment.text.slice(-1)
@@ -276,8 +278,7 @@ export function useSegmentEditor(
       // 插入新區塊到後面
       line.segments.splice(segmentIndex + 1, 0, newSegment)
 
-      // 選取新分割出的區塊
-      selection.segmentId = newSegment.id
+      // 選擇區保留在原本的區塊（不變更 selection.segmentId）
     }
   }
 

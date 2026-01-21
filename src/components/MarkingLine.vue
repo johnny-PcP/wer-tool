@@ -2,7 +2,7 @@
 import type { TextLine, PreviewHighlight, SearchMatch } from '@/types'
 import { getLineStats } from '@/composables/useScoring'
 import { useAutoResizeWithRef } from '@/composables/useAutoResize'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import Segment from './Segment.vue'
 
 const props = defineProps<{
@@ -64,11 +64,15 @@ const stats = computed(() => getLineStats(props.line))
 // 編輯中的文字
 const editingText = ref(props.line.originalText)
 
-// 當 line 變化時更新編輯文字
+// 當 line 變化時更新編輯文字並調整高度
 watch(
   () => props.line.originalText,
   (newText) => {
     editingText.value = newText
+    // 文字變更後調整 textarea 高度
+    nextTick(() => {
+      resizeTextarea()
+    })
   },
 )
 
@@ -94,6 +98,7 @@ function handleReParseLine() {
 
 <template>
   <div
+    :data-line-id="line.id"
     class="marking-line flex items-start gap-4 py-2 border-b border-gray-200 transition-all duration-200"
   >
     <!-- 行號 -->

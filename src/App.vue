@@ -132,6 +132,18 @@ const { getPreviewHighlight, isAdjacentPreview } = useSegmentPreview(
 // 設置搜尋功能
 const search = useSearch(() => lines.value)
 
+// 普通渲染模式下，選擇行變化時自動捲動
+watch(
+  () => selection.lineId,
+  (lineId) => {
+    if (!lineId || lines.value.length > VIRTUAL_SCROLL_THRESHOLD) return
+    nextTick(() => {
+      const el = document.querySelector(`[data-line-id="${lineId}"]`)
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  },
+)
+
 // 當前搜尋匹配變化時自動選取並滾動
 watch(
   () => search.currentMatch.value,
@@ -139,10 +151,13 @@ watch(
     if (match) {
       selection.lineId = match.lineId
       selection.segmentId = match.segmentId
-      nextTick(() => {
-        const el = document.querySelector(`[data-segment-id="${match.segmentId}"]`)
-        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      })
+      // 只在普通渲染模式下手動捲動（虛擬滾動由 VirtualMarkingList 處理）
+      if (lines.value.length <= VIRTUAL_SCROLL_THRESHOLD) {
+        nextTick(() => {
+          const el = document.querySelector(`[data-segment-id="${match.segmentId}"]`)
+          el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        })
+      }
     }
   },
 )

@@ -58,7 +58,7 @@ function handleEndChange(e: Event) {
         <input
           type="number"
           min="1"
-          :max="lines.length"
+          :max="endLine || lines.length"
           :value="startLine ?? ''"
           placeholder="1"
           class="w-14 px-2 py-1 text-sm text-center border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -70,7 +70,7 @@ function handleEndChange(e: Event) {
         <span class="text-xs text-slate-500">到第</span>
         <input
           type="number"
-          min="1"
+          :min="startLine || 1"
           :max="lines.length"
           :value="endLine ?? ''"
           :placeholder="String(lines.length)"
@@ -115,7 +115,7 @@ function handleEndChange(e: Event) {
         <input
           type="number"
           min="1"
-          :max="lines.length"
+          :max="endLine || lines.length"
           :value="startLine ?? ''"
           placeholder="1"
           class="w-10 px-1 py-0.5 text-xs text-center border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -124,7 +124,7 @@ function handleEndChange(e: Event) {
         <span class="text-xs text-slate-400">-</span>
         <input
           type="number"
-          min="1"
+          :min="startLine || 1"
           :max="lines.length"
           :value="endLine ?? ''"
           :placeholder="String(lines.length)"

@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { Segment } from '@/types'
-import type { PreviewHighlight } from '@/composables/useSegmentPreview'
-import type { SearchMatch } from '@/composables/useSearch'
+import type { Segment, PreviewHighlight, SearchMatch } from '@/types'
 
 defineOptions({
   name: 'TextSegment',
@@ -195,7 +193,8 @@ function getSearchHighlightedParts(): TextPart[] {
     0 0 0 2px rgba(251, 191, 36, 0.4),
     0 0 8px rgba(251, 191, 36, 0.3);
   z-index: 10;
-  animation: selection-pulse 2s ease-in-out infinite;
+  /* 只執行 2 次動畫，然後停止以節省 GPU */
+  animation: selection-pulse 1.5s ease-in-out 2;
 }
 
 /* === 選中狀態 - 錯誤狀態 === */
@@ -205,7 +204,7 @@ function getSearchHighlightedParts(): TextPart[] {
     inset 0 -3px 0 0 #ef4444,
     0 0 0 2px rgba(239, 68, 68, 0.4),
     0 0 8px rgba(239, 68, 68, 0.3);
-  animation: selection-pulse-error 2s ease-in-out infinite;
+  animation: selection-pulse-error 1.5s ease-in-out 2;
 }
 
 /* === 選中狀態 - 已刪除狀態 === */
@@ -215,7 +214,7 @@ function getSearchHighlightedParts(): TextPart[] {
     inset 0 -3px 0 0 #9ca3af,
     0 0 0 2px rgba(156, 163, 175, 0.4),
     0 0 8px rgba(156, 163, 175, 0.3);
-  animation: selection-pulse-deleted 2s ease-in-out infinite;
+  animation: selection-pulse-deleted 1.5s ease-in-out 2;
 }
 
 /* === 選中脈衝動畫 === */

@@ -1,19 +1,5 @@
 import { computed, type Ref } from 'vue'
-import type { TextLine, Selection } from '@/types'
-
-export type EditMode = 'none' | 'left' | 'right'
-
-export interface PreviewHighlight {
-  char: string
-  position: 'start' | 'end'
-}
-
-export interface PreviewInfo {
-  currentSegmentId: string | null
-  currentHighlight: PreviewHighlight | null
-  adjacentSegmentId: string | null
-  adjacentHighlight: PreviewHighlight | null
-}
+import type { TextLine, Selection, EditMode, PreviewHighlight, PreviewInfo } from '@/types'
 
 export function useSegmentPreview(
   getLines: () => TextLine[],
@@ -111,7 +97,6 @@ export function useSegmentPreview(
   }
 
   return {
-    previewInfo,
     getPreviewHighlight,
     isAdjacentPreview,
   }

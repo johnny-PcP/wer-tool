@@ -34,3 +34,35 @@ export interface StoredState {
   lines: TextLine[]
   inputText: string
 }
+
+// 編輯模式類型
+export type EditMode = 'none' | 'left' | 'right'
+export type EditingMode = 'viewing' | 'wer' | 'text'
+
+// 歷史記錄狀態
+export interface HistoryState {
+  lines: TextLine[]
+  selectedLineId: string | null
+  selectedSegmentId: string | null
+}
+
+// 搜尋匹配
+export interface SearchMatch {
+  lineId: string
+  segmentId: string
+  matchIndex: number
+  matchLength: number
+}
+
+// 預覽高亮
+export interface PreviewHighlight {
+  char: string
+  position: 'start' | 'end'
+}
+
+export interface PreviewInfo {
+  currentSegmentId: string | null
+  currentHighlight: PreviewHighlight | null
+  adjacentSegmentId: string | null
+  adjacentHighlight: PreviewHighlight | null
+}

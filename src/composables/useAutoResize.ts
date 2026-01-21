@@ -1,4 +1,36 @@
-import { ref, watch, onMounted, nextTick, type Ref } from 'vue'
+import { ref, watch, nextTick, type Ref } from 'vue'
+
+// 計算行高
+function getLineHeight(el: HTMLTextAreaElement): number {
+  const computed = window.getComputedStyle(el)
+  return parseFloat(computed.lineHeight) || parseFloat(computed.fontSize) * 1.5
+}
+
+// 調整 textarea 高度的核心邏輯
+function resizeTextarea(el: HTMLTextAreaElement, minRows: number, maxRows?: number): void {
+  const lineHeight = getLineHeight(el)
+  const style = window.getComputedStyle(el)
+  const paddingTop = parseFloat(style.paddingTop) || 0
+  const paddingBottom = parseFloat(style.paddingBottom) || 0
+  const borderTop = parseFloat(style.borderTopWidth) || 0
+  const borderBottom = parseFloat(style.borderBottomWidth) || 0
+
+  // 計算最小和最大高度
+  const minHeight = lineHeight * minRows + paddingTop + paddingBottom + borderTop + borderBottom
+  const maxHeight = maxRows
+    ? lineHeight * maxRows + paddingTop + paddingBottom + borderTop + borderBottom
+    : Infinity
+
+  // 先重置高度以獲取正確的 scrollHeight
+  el.style.height = 'auto'
+
+  // 計算新高度
+  const newHeight = Math.min(Math.max(el.scrollHeight, minHeight), maxHeight)
+  el.style.height = `${newHeight}px`
+
+  // 如果超過最大高度，啟用捲動
+  el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden'
+}
 
 /**
  * 自動調整 textarea 高度的 composable
@@ -8,41 +40,12 @@ import { ref, watch, onMounted, nextTick, type Ref } from 'vue'
 export function useAutoResize(minRows = 1, maxRows?: number) {
   const textareaRef = ref<HTMLTextAreaElement | null>(null)
 
-  // 計算行高
-  function getLineHeight(el: HTMLTextAreaElement): number {
-    const computed = window.getComputedStyle(el)
-    return parseFloat(computed.lineHeight) || parseFloat(computed.fontSize) * 1.5
-  }
-
-  // 調整高度
   function resize() {
-    const el = textareaRef.value
-    if (!el) return
-
-    const lineHeight = getLineHeight(el)
-    const paddingTop = parseFloat(window.getComputedStyle(el).paddingTop) || 0
-    const paddingBottom = parseFloat(window.getComputedStyle(el).paddingBottom) || 0
-    const borderTop = parseFloat(window.getComputedStyle(el).borderTopWidth) || 0
-    const borderBottom = parseFloat(window.getComputedStyle(el).borderBottomWidth) || 0
-
-    // 計算最小和最大高度
-    const minHeight = lineHeight * minRows + paddingTop + paddingBottom + borderTop + borderBottom
-    const maxHeight = maxRows
-      ? lineHeight * maxRows + paddingTop + paddingBottom + borderTop + borderBottom
-      : Infinity
-
-    // 先重置高度以獲取正確的 scrollHeight
-    el.style.height = 'auto'
-
-    // 計算新高度
-    const newHeight = Math.min(Math.max(el.scrollHeight, minHeight), maxHeight)
-    el.style.height = `${newHeight}px`
-
-    // 如果超過最大高度，啟用捲動
-    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden'
+    if (textareaRef.value) {
+      resizeTextarea(textareaRef.value, minRows, maxRows)
+    }
   }
 
-  // 監聽 textarea 的 input 事件
   function handleInput() {
     resize()
   }
@@ -72,38 +75,10 @@ export function useAutoResizeWithRef(
   minRows = 1,
   maxRows?: number
 ) {
-  // 計算行高
-  function getLineHeight(el: HTMLTextAreaElement): number {
-    const computed = window.getComputedStyle(el)
-    return parseFloat(computed.lineHeight) || parseFloat(computed.fontSize) * 1.5
-  }
-
-  // 調整高度
   function resize() {
-    const el = existingRef.value
-    if (!el) return
-
-    const lineHeight = getLineHeight(el)
-    const paddingTop = parseFloat(window.getComputedStyle(el).paddingTop) || 0
-    const paddingBottom = parseFloat(window.getComputedStyle(el).paddingBottom) || 0
-    const borderTop = parseFloat(window.getComputedStyle(el).borderTopWidth) || 0
-    const borderBottom = parseFloat(window.getComputedStyle(el).borderBottomWidth) || 0
-
-    // 計算最小和最大高度
-    const minHeight = lineHeight * minRows + paddingTop + paddingBottom + borderTop + borderBottom
-    const maxHeight = maxRows
-      ? lineHeight * maxRows + paddingTop + paddingBottom + borderTop + borderBottom
-      : Infinity
-
-    // 先重置高度以獲取正確的 scrollHeight
-    el.style.height = 'auto'
-
-    // 計算新高度
-    const newHeight = Math.min(Math.max(el.scrollHeight, minHeight), maxHeight)
-    el.style.height = `${newHeight}px`
-
-    // 如果超過最大高度，啟用捲動
-    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden'
+    if (existingRef.value) {
+      resizeTextarea(existingRef.value, minRows, maxRows)
+    }
   }
 
   // 監聽 ref 變化

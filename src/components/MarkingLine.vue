@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { TextLine } from '@/types'
-import type { PreviewHighlight } from '@/composables/useSegmentPreview'
-import type { SearchMatch } from '@/composables/useSearch'
+import type { TextLine, PreviewHighlight, SearchMatch } from '@/types'
 import { getLineStats } from '@/composables/useScoring'
 import { useAutoResizeWithRef } from '@/composables/useAutoResize'
 import { computed, ref, watch } from 'vue'
@@ -43,19 +41,12 @@ function focusAndSelectText(el: HTMLTextAreaElement) {
 }
 
 // 當需要 focus 時，自動聚焦輸入框並選取文字
-// 監聽 textareaRef 變化，當 textarea 元素出現且需要 focus 時進行聚焦
-watch(textareaRef, (el) => {
-  if (el && props.shouldFocus && props.isTextEditMode) {
-    focusAndSelectText(el)
-  }
-})
-
-// 當 shouldFocus 變化時（例如用方向鍵切換行）
+// 合併監聽 textareaRef 和 shouldFocus 的變化
 watch(
-  () => props.shouldFocus,
-  (shouldFocus) => {
-    if (shouldFocus && props.isTextEditMode && textareaRef.value) {
-      focusAndSelectText(textareaRef.value)
+  [textareaRef, () => props.shouldFocus],
+  ([el, shouldFocus]) => {
+    if (el && shouldFocus && props.isTextEditMode) {
+      focusAndSelectText(el)
     }
   },
 )

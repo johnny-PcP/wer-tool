@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, reactive, computed, watch, onMounted, nextTick, onUnmounted } from 'vue'
 import type { TextLine, Selection } from '@/types'
 import { parseText, reParseLine, resetIdCounters, reassignIds } from '@/composables/useTextParser'
+import { selectFirstSegment, selectLineFirstSegment } from '@/utils/selection'
+import { debounce } from '@/utils/debounce'
 import { useKeyboard } from '@/composables/useKeyboard'
 import { useSegmentEditor } from '@/composables/useSegmentEditor'
 import { useSegmentPreview } from '@/composables/useSegmentPreview'
@@ -10,8 +12,12 @@ import { useStorage } from '@/composables/useStorage'
 import { useHistory } from '@/composables/useHistory'
 import TextInputArea from '@/components/TextInputArea.vue'
 import MarkingLine from '@/components/MarkingLine.vue'
+import VirtualMarkingList from '@/components/VirtualMarkingList.vue'
 import TotalStats from '@/components/TotalStats.vue'
 import SearchBar from '@/components/SearchBar.vue'
+
+// 虛擬滾動閾值：超過此行數時啟用虛擬滾動
+const VIRTUAL_SCROLL_THRESHOLD = 50
 
 const lines = ref<TextLine[]>([])
 const isMarking = ref(false)
@@ -49,16 +55,21 @@ function handleUndo(): void {
   }
 }
 
-// 自動儲存
-watch(
-  lines,
-  (newLines) => {
-    if (isMarking.value && newLines.length > 0) {
-      storage.save(newLines, inputText.value)
-    }
-  },
-  { deep: true },
-)
+// 自動儲存（使用防抖減少頻繁寫入 localStorage）
+const debouncedSave = debounce((newLines: TextLine[]) => {
+  if (isMarking.value && newLines.length > 0) {
+    storage.save(newLines, inputText.value)
+  }
+}, 500) // 500ms 防抖延遲
+
+watch(lines, debouncedSave, { deep: true })
+
+// 頁面卸載前立即儲存（確保最後的變更不會因防抖而丟失）
+onUnmounted(() => {
+  if (isMarking.value && lines.value.length > 0) {
+    storage.save(lines.value, inputText.value)
+  }
+})
 
 // 載入儲存的狀態
 onMounted(() => {
@@ -87,6 +98,14 @@ const { editMode } = useKeyboard(
     onSplit: (side) => editor.splitSegment(side),
     onUndo: () => handleUndo(),
     onMergeNext: () => editor.mergeWithNext(),
+    // 全域事件回調
+    onOpenSearch: () => isMarking.value && search.openSearch(),
+    onCloseSearch: () => search.closeSearch(),
+    onEnterTextEdit: () => enterTextEditMode(),
+    onExitTextEdit: () => exitTextEditMode(),
+    onExitToViewing: () => exitToViewing(),
+    onReassignIds: () => handleReassignIds(),
+    isSearchOpen: () => search.isSearchOpen.value,
   },
   editingMode,
 )
@@ -120,16 +139,7 @@ function handleStartMarking(text: string) {
   inputText.value = text
   lines.value = parseText(text)
   isMarking.value = true
-
-  // 選取第一個區塊
-  const firstLine = lines.value[0]
-  if (firstLine && firstLine.segments.length > 0) {
-    const firstSegment = firstLine.segments[0]
-    if (firstSegment) {
-      selection.lineId = firstLine.id
-      selection.segmentId = firstSegment.id
-    }
-  }
+  selectFirstSegment(lines.value, selection)
 }
 
 // 重新輸入（保留文字，回到輸入畫面）
@@ -214,15 +224,7 @@ function reParseAllFromEditedText() {
   // 重設 ID counter 並重新解析
   resetIdCounters()
   lines.value = parseText(inputText.value)
-  // 選取第一個區塊
-  const firstLine = lines.value[0]
-  if (firstLine && firstLine.segments.length > 0) {
-    const firstSegment = firstLine.segments[0]
-    if (firstSegment) {
-      selection.lineId = firstLine.id
-      selection.segmentId = firstSegment.id
-    }
-  }
+  selectFirstSegment(lines.value, selection)
 }
 
 // 重新判定（全域）- 會重置所有標記！
@@ -232,15 +234,7 @@ function handleReParseAll() {
   }
   saveCurrentState()
   lines.value = parseText(inputText.value)
-  // 選取第一個區塊
-  const firstLine = lines.value[0]
-  if (firstLine && firstLine.segments.length > 0) {
-    const firstSegment = firstLine.segments[0]
-    if (firstSegment) {
-      selection.lineId = firstLine.id
-      selection.segmentId = firstSegment.id
-    }
-  }
+  selectFirstSegment(lines.value, selection)
 }
 
 // 重置排列（保留標記狀態，修復方向鍵導航問題）
@@ -286,9 +280,8 @@ function handleReParseLine(lineId: string) {
       lines.value.splice(lineIndex, 1)
       // 選取前一行或下一行
       const newSelectedLine = lines.value[lineIndex] || lines.value[lineIndex - 1]
-      if (newSelectedLine && newSelectedLine.segments.length > 0) {
-        selection.lineId = newSelectedLine.id
-        selection.segmentId = newSelectedLine.segments[0]?.id ?? null
+      if (newSelectedLine) {
+        selectLineFirstSegment(newSelectedLine, selection)
       }
       return
     }
@@ -303,23 +296,14 @@ function handleReParseLine(lineId: string) {
 
     // 選取第一行的第一個區塊
     const firstNewLine = newLines[0]
-    if (firstNewLine && firstNewLine.segments.length > 0) {
-      selection.lineId = firstNewLine.id
-      selection.segmentId = firstNewLine.segments[0]?.id ?? null
+    if (firstNewLine) {
+      selectLineFirstSegment(firstNewLine, selection)
     }
   } else {
     // 沒有換行符，正常重新解析
     const newLine = reParseLine(text, line.id)
     lines.value[lineIndex] = newLine
-
-    // 選取該行第一個區塊
-    if (newLine.segments.length > 0) {
-      const firstSegment = newLine.segments[0]
-      if (firstSegment) {
-        selection.lineId = newLine.id
-        selection.segmentId = firstSegment.id
-      }
-    }
+    selectLineFirstSegment(newLine, selection)
   }
 }
 
@@ -380,68 +364,7 @@ function batchMerge(direction: 'left' | 'right') {
   }
 }
 
-// 全域鍵盤事件（根據三模式處理）
-function handleGlobalKeyDown(e: KeyboardEvent) {
-  // Ctrl+F 或 Cmd+F 開啟搜尋（在標記模式下，任何編輯模式都可用）
-  if ((e.ctrlKey || e.metaKey) && e.key === 'f' && isMarking.value) {
-    e.preventDefault()
-    search.openSearch()
-    return
-  }
-
-  // 如果在輸入框內（textarea / input）
-  if (e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement) {
-    // 在文字編輯模式下按 Esc → 回到 WER 編輯模式
-    if (e.key === 'Escape' && editingMode.value === 'text') {
-      e.preventDefault()
-      exitTextEditMode()
-      return
-    }
-    // 在搜尋框按 Esc 關閉搜尋
-    if (e.key === 'Escape' && search.isSearchOpen.value) {
-      e.preventDefault()
-      search.closeSearch()
-      return
-    }
-    return
-  }
-
-  // 非輸入框情況下
-  if (!isMarking.value) return
-
-  // 閱覽模式：不攔截任何快捷鍵（瀏覽器正常運作）
-  if (editingMode.value === 'viewing') {
-    return
-  }
-
-  // WER 編輯模式：處理快捷鍵
-  if (editingMode.value === 'wer') {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      enterTextEditMode()
-    } else if (e.key === 'Escape') {
-      e.preventDefault()
-      if (search.isSearchOpen.value) {
-        search.closeSearch()
-      } else {
-        // Esc → 回到閱覽模式
-        exitToViewing()
-      }
-    } else if (e.key === 'r' || e.key === 'R') {
-      // 重置排列（保留標記狀態，修復方向鍵導航問題）
-      e.preventDefault()
-      handleReassignIds()
-    }
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', handleGlobalKeyDown)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleGlobalKeyDown)
-})
+// 全域鍵盤事件已整合到 useKeyboard 中，無需重複監聽
 </script>
 
 <template>
@@ -828,33 +751,54 @@ onUnmounted(() => {
               </div>
             </div>
             <div class="marking-area">
-              <MarkingLine
-                v-for="line in lines"
-                :key="line.id"
-                :line="line"
-                :selected-segment-id="
-                  editingMode !== 'viewing' && selection.lineId === line.id
-                    ? selection.segmentId
-                    : null
-                "
-                :edit-mode="
-                  editingMode !== 'viewing' && selection.lineId === line.id ? editMode : 'none'
-                "
+              <!-- 大量行數時使用虛擬滾動 -->
+              <VirtualMarkingList
+                v-if="lines.length > VIRTUAL_SCROLL_THRESHOLD"
+                :lines="lines"
+                :selected-line-id="selection.lineId"
+                :selected-segment-id="selection.segmentId"
+                :edit-mode="editMode"
+                :editing-mode="editingMode"
                 :is-text-edit-mode="isTextEditMode"
-                :should-focus="isTextEditMode && selection.lineId === line.id"
-                :get-preview-highlight="
-                  selection.lineId === line.id ? getPreviewHighlight : undefined
-                "
-                :is-adjacent-preview="selection.lineId === line.id ? isAdjacentPreview : undefined"
-                :get-search-matches="
-                  search.isSearchOpen.value ? search.getSegmentMatches : undefined
-                "
+                :get-preview-highlight="getPreviewHighlight"
+                :is-adjacent-preview="isAdjacentPreview"
+                :get-search-matches="search.isSearchOpen.value ? search.getSegmentMatches : undefined"
                 :current-search-match="search.currentMatch.value"
                 @toggle-segment="handleToggleSegment"
                 @select-segment="handleSelectSegment"
                 @update-line-text="handleUpdateLineText"
                 @re-parse-line="handleReParseLine"
               />
+              <!-- 少量行數時使用普通渲染 -->
+              <template v-else>
+                <MarkingLine
+                  v-for="line in lines"
+                  :key="line.id"
+                  :line="line"
+                  :selected-segment-id="
+                    editingMode !== 'viewing' && selection.lineId === line.id
+                      ? selection.segmentId
+                      : null
+                  "
+                  :edit-mode="
+                    editingMode !== 'viewing' && selection.lineId === line.id ? editMode : 'none'
+                  "
+                  :is-text-edit-mode="isTextEditMode"
+                  :should-focus="isTextEditMode && selection.lineId === line.id"
+                  :get-preview-highlight="
+                    selection.lineId === line.id ? getPreviewHighlight : undefined
+                  "
+                  :is-adjacent-preview="selection.lineId === line.id ? isAdjacentPreview : undefined"
+                  :get-search-matches="
+                    search.isSearchOpen.value ? search.getSegmentMatches : undefined
+                  "
+                  :current-search-match="search.currentMatch.value"
+                  @toggle-segment="handleToggleSegment"
+                  @select-segment="handleSelectSegment"
+                  @update-line-text="handleUpdateLineText"
+                  @re-parse-line="handleReParseLine"
+                />
+              </template>
             </div>
           </div>
 

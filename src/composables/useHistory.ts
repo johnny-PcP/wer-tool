@@ -1,20 +1,20 @@
 import { ref } from 'vue'
-import type { TextLine } from '@/types'
-
-export interface HistoryState {
-  lines: TextLine[]
-  selectedLineId: string | null
-  selectedSegmentId: string | null
-}
+import type { TextLine, HistoryState } from '@/types'
 
 const MAX_HISTORY_SIZE = 50
 
 export function useHistory() {
   const history = ref<HistoryState[]>([])
 
-  // 深拷貝 lines 陣列
+  // 深拷貝 lines 陣列（帶錯誤處理）
   function cloneLines(lines: TextLine[]): TextLine[] {
-    return JSON.parse(JSON.stringify(lines))
+    try {
+      return JSON.parse(JSON.stringify(lines))
+    } catch (error) {
+      console.error('Failed to clone lines for history:', error)
+      // 回傳空陣列避免應用崩潰
+      return []
+    }
   }
 
   // 儲存當前狀態到歷史記錄
@@ -23,8 +23,14 @@ export function useHistory() {
     selectedLineId: string | null,
     selectedSegmentId: string | null,
   ): void {
+    const clonedLines = cloneLines(lines)
+    // 如果深拷貝失敗（回傳空陣列），不儲存此狀態
+    if (clonedLines.length === 0 && lines.length > 0) {
+      return
+    }
+
     const state: HistoryState = {
-      lines: cloneLines(lines),
+      lines: clonedLines,
       selectedLineId,
       selectedSegmentId,
     }
@@ -46,11 +52,6 @@ export function useHistory() {
     return history.value.pop() || null
   }
 
-  // 檢查是否可以復原
-  function canUndo(): boolean {
-    return history.value.length > 0
-  }
-
   // 清除歷史記錄
   function clearHistory(): void {
     history.value = []
@@ -59,7 +60,6 @@ export function useHistory() {
   return {
     saveState,
     undo,
-    canUndo,
     clearHistory,
   }
 }

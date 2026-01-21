@@ -1,12 +1,5 @@
 import { ref, computed, watch } from 'vue'
-import type { TextLine } from '@/types'
-
-export interface SearchMatch {
-  lineId: string
-  segmentId: string
-  matchIndex: number
-  matchLength: number
-}
+import type { TextLine, SearchMatch } from '@/types'
 
 export function useSearch(getLines: () => TextLine[]) {
   const searchQuery = ref('')
@@ -52,11 +45,6 @@ export function useSearch(getLines: () => TextLine[]) {
     return matches.value[safeIndex] || null
   })
 
-  // 匹配的 segment IDs
-  const matchedSegmentIds = computed(() => {
-    return new Set(matches.value.map((m) => m.segmentId))
-  })
-
   // 搜尋結果統計文字
   const searchStatus = computed(() => {
     if (!searchQuery.value.trim()) return ''
@@ -99,13 +87,6 @@ export function useSearch(getLines: () => TextLine[]) {
     return matches.value.filter((m) => m.segmentId === segmentId)
   }
 
-  // 檢查特定匹配是否為當前高亮
-  function isCurrentMatchAt(segmentId: string, matchIndex: number): boolean {
-    const current = currentMatch.value
-    if (!current) return false
-    return current.segmentId === segmentId && current.matchIndex === matchIndex
-  }
-
   return {
     searchQuery,
     isSearchOpen,
@@ -113,13 +94,11 @@ export function useSearch(getLines: () => TextLine[]) {
     matches,
     currentMatch,
     currentMatchIndex,
-    matchedSegmentIds,
     searchStatus,
     nextMatch,
     prevMatch,
     openSearch,
     closeSearch,
     getSegmentMatches,
-    isCurrentMatchAt,
   }
 }

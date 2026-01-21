@@ -1,8 +1,5 @@
 import { ref, computed, onMounted, onUnmounted, type Ref } from 'vue'
-import type { TextLine, Selection } from '@/types'
-
-export type EditMode = 'none' | 'left' | 'right'
-export type EditingMode = 'viewing' | 'wer' | 'text'
+import type { TextLine, Selection, EditMode, EditingMode } from '@/types'
 
 export function useKeyboard(
   lines: () => TextLine[],
@@ -17,6 +14,14 @@ export function useKeyboard(
     onSplit: (side: 'left' | 'right') => void
     onUndo: () => void
     onMergeNext: () => void
+    // 額外的全域事件回調
+    onOpenSearch?: () => void
+    onCloseSearch?: () => void
+    onEnterTextEdit?: () => void
+    onExitTextEdit?: () => void
+    onExitToViewing?: () => void
+    onReassignIds?: () => void
+    isSearchOpen?: () => boolean
   },
   editingMode: Ref<EditingMode>,
 ) {
@@ -253,15 +258,45 @@ export function useKeyboard(
   }
 
   function handleKeyDown(e: KeyboardEvent): void {
-    // 只在 WER 編輯模式下攔截快捷鍵
-    if (editingMode.value !== 'wer') {
+    // Ctrl+F 或 Cmd+F 開啟搜尋（全域可用）
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+      e.preventDefault()
+      callbacks.onOpenSearch?.()
       return
     }
 
-    // 忽略輸入框內的按鍵
+    // 如果在輸入框內（textarea / input）
     if (e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement) {
+      // 在文字編輯模式下按 Esc → 回到 WER 編輯模式
+      if (e.key === 'Escape' && editingMode.value === 'text') {
+        e.preventDefault()
+        callbacks.onExitTextEdit?.()
+        return
+      }
+      // 在搜尋框按 Esc 關閉搜尋
+      if (e.key === 'Escape' && callbacks.isSearchOpen?.()) {
+        e.preventDefault()
+        callbacks.onCloseSearch?.()
+        return
+      }
       return
     }
+
+    // 閱覽模式：不攔截任何快捷鍵
+    if (editingMode.value === 'viewing') {
+      return
+    }
+
+    // 文字編輯模式：只處理 Esc
+    if (editingMode.value === 'text') {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        callbacks.onExitTextEdit?.()
+      }
+      return
+    }
+
+    // 以下為 WER 編輯模式的快捷鍵
 
     // 追蹤 Z/X 按鍵狀態
     if (e.key === 'z' || e.key === 'Z') {
@@ -271,6 +306,31 @@ export function useKeyboard(
     if (e.key === 'x' || e.key === 'X') {
       isXPressed.value = true
       lastEditSide.value = 'right'
+    }
+
+    // Enter 進入文字編輯模式
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      callbacks.onEnterTextEdit?.()
+      return
+    }
+
+    // Escape 處理
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      if (callbacks.isSearchOpen?.()) {
+        callbacks.onCloseSearch?.()
+      } else {
+        callbacks.onExitToViewing?.()
+      }
+      return
+    }
+
+    // R 重置排列
+    if (e.key === 'r' || e.key === 'R') {
+      e.preventDefault()
+      callbacks.onReassignIds?.()
+      return
     }
 
     // 方向鍵處理
@@ -340,14 +400,22 @@ export function useKeyboard(
     }
   }
 
+  // 當視窗失焦時，重置 Z/X 鍵狀態，避免卡在編輯模式
+  function handleWindowBlur(): void {
+    isZPressed.value = false
+    isXPressed.value = false
+  }
+
   onMounted(() => {
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('blur', handleWindowBlur)
   })
 
   onUnmounted(() => {
     window.removeEventListener('keydown', handleKeyDown)
     window.removeEventListener('keyup', handleKeyUp)
+    window.removeEventListener('blur', handleWindowBlur)
   })
 
   return {
